@@ -1,6 +1,6 @@
 export default function Header() {
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-10">
+    <header className="h-20 bg-white/70 backdrop-blur-md border-b border-slate-200/50 flex items-center justify-between px-6 sticky top-0 z-10">
       <div>
         <h1 className="text-xl font-bold text-slate-800">Task Dashboard</h1>
         <p className="text-xs text-slate-500 font-medium tracking-wide">Manage your team's workload efficiently</p>

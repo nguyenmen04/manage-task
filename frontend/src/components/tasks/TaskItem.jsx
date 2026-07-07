@@ -49,7 +49,7 @@ export default function TaskItem({ task, onUpdate, onDelete }) {
   };
 
   return (
-    <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors group">
+    <tr className="border-b border-white/20 hover:bg-white/40 transition-colors group">
       <td className="py-4 pl-6 pr-4 whitespace-nowrap w-16">
         <button 
           onClick={() => onUpdate(task.id, { status: !task.status })}

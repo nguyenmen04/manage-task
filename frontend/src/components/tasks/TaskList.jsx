@@ -3,8 +3,8 @@ import TaskItem from './TaskItem';
 export default function TaskList({ tasks, onUpdate, onDelete }) {
   if (tasks.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="glass-card rounded-2xl p-12 text-center relative overflow-hidden">
+        <div className="w-20 h-20 bg-indigo-50/50 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
           <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
@@ -16,11 +16,11 @@ export default function TaskList({ tasks, onUpdate, onDelete }) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="glass-card rounded-2xl overflow-hidden relative">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-white/30 border-b border-white/40">
               <th className="py-3 pl-6 pr-4 font-semibold text-xs text-slate-500 uppercase tracking-wider w-16">
                 Status
               </th>

@@ -15,23 +15,24 @@ export default function TaskForm({ onAdd }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-      <h2 className="text-lg font-bold text-slate-800 mb-4">Create New Task</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4">
+    <div className="glass-card rounded-2xl p-6 mb-8 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+      <h2 className="text-xl font-bold text-slate-800 mb-5 relative z-10">Create New Task</h2>
+      <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4 relative z-10">
         <div className="flex-1">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="What needs to be done?"
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+            className="w-full px-5 py-3 glass-input rounded-xl text-sm outline-none text-slate-800 placeholder-slate-400 font-medium"
           />
         </div>
         <div className="w-full md:w-40">
           <select 
             value={priority} 
             onChange={(e) => setPriority(e.target.value)}
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:border-indigo-500 outline-none cursor-pointer"
+            className="w-full px-5 py-3 glass-input rounded-xl text-sm outline-none cursor-pointer text-slate-700 font-medium appearance-none"
           >
             <option value="Low">Low Priority</option>
             <option value="Medium">Medium Priority</option>
@@ -43,12 +44,12 @@ export default function TaskForm({ onAdd }) {
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:bg-white focus:border-indigo-500 outline-none cursor-pointer text-slate-600"
+            className="w-full px-5 py-3 glass-input rounded-xl text-sm outline-none cursor-pointer text-slate-700 font-medium"
           />
         </div>
         <button
           type="submit"
-          className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2"
+          className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

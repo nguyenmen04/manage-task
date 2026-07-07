@@ -96,3 +96,5 @@ Backend cần cung cấp 4 API cơ bản kết nối trực tiếp với Databas
   - **Logs:** Ghi lại mọi lỗi (Exception) xảy ra trong quá trình người dùng sử dụng.
   - **Metrics & Alarms:** Cài đặt báo động (Ví dụ: CPU > 80% thì tự động gửi tin nhắn báo vào Slack/Email).
 - Quay lại Giai đoạn 1 nếu có lỗi cần sửa hoặc tính năng mới cần thêm.
+
+

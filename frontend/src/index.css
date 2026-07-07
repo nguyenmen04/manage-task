@@ -19,6 +19,32 @@
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  background-color: #f3f4f6; /* bg-gray-100 */
+  font-family: 'Outfit', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/40 backdrop-blur-xl border border-white/40 shadow-xl;
+  }
+  .glass-card {
+    @apply bg-white/60 backdrop-blur-md border border-white/50 shadow-lg;
+  }
+  .glass-input {
+    @apply bg-white/50 backdrop-blur-sm border border-white/60 focus:bg-white/80 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-300/50 transition-all;
+  }
+}
+
+.mesh-bg {
+  background-color: #f3f4f6;
+  background-image: 
+    radial-gradient(at 40% 20%, hsla(280,100%,74%,1) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, hsla(189,100%,56%,1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(355,100%,93%,1) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, hsla(340,100%,76%,1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(22,100%,77%,1) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(242,100%,70%,1) 0px, transparent 50%),
+    radial-gradient(at 0% 0%, hsla(343,100%,76%,1) 0px, transparent 50%);
+  background-attachment: fixed;
 }

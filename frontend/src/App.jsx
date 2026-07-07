@@ -77,14 +77,14 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans">
+    <div className="flex min-h-screen mesh-bg font-sans text-slate-800">
       <Sidebar />
       <div className="flex-1 ml-64 flex flex-col">
         <Header />
         <main className="flex-1 p-8 overflow-y-auto">
           <div className="max-w-5xl mx-auto">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-slate-800">Tasks Overview</h2>
+              <h2 className="text-3xl font-bold text-slate-900 drop-shadow-sm">Tasks Overview</h2>
             </div>
             {loading ? (
               <div className="flex justify-center items-center h-64">
