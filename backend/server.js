@@ -101,13 +101,13 @@ app.get('/tasks', authenticateToken, async (req, res) => {
 // 2. POST /tasks - Thêm công việc mới cho user
 app.post('/tasks', authenticateToken, async (req, res) => {
   try {
-    const { title } = req.body;
+    const { title, priority, due_date } = req.body;
     if (!title) {
       return res.status(400).json({ error: 'Title is required' });
     }
     const result = await pool.query(
-      'INSERT INTO tasks (title, user_id) VALUES ($1, $2) RETURNING *',
-      [title, req.user.id]
+      'INSERT INTO tasks (title, user_id, priority, due_date) VALUES ($1, $2, $3, $4) RETURNING *',
+      [title, req.user.id, priority || 'Medium', due_date || null]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -116,16 +116,16 @@ app.post('/tasks', authenticateToken, async (req, res) => {
   }
 });
 
-// 3. PUT /tasks/:id - Cập nhật trạng thái
+// 3. PUT /tasks/:id - Cập nhật task (status, title, priority, due_date)
 app.put('/tasks/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, title, priority, due_date } = req.body;
     
     // Đảm bảo user chỉ update được task của mình
     const result = await pool.query(
-      'UPDATE tasks SET status = $1 WHERE id = $2 AND user_id = $3 RETURNING *',
-      [status, id, req.user.id]
+      'UPDATE tasks SET status = COALESCE($1, status), title = COALESCE($2, title), priority = COALESCE($3, priority), due_date = COALESCE($4, due_date) WHERE id = $5 AND user_id = $6 RETURNING *',
+      [status, title, priority, due_date, id, req.user.id]
     );
     
     if (result.rows.length === 0) {

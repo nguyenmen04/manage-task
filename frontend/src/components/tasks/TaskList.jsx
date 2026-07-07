@@ -1,6 +1,6 @@
 import TaskItem from './TaskItem';
 
-export default function TaskList({ tasks, onToggle, onDelete }) {
+export default function TaskList({ tasks, onUpdate, onDelete }) {
   if (tasks.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
@@ -28,10 +28,10 @@ export default function TaskList({ tasks, onToggle, onDelete }) {
                 Task Name
               </th>
               <th className="py-3 px-4 font-semibold text-xs text-slate-500 uppercase tracking-wider">
-                Label
+                Priority
               </th>
               <th className="py-3 px-4 font-semibold text-xs text-slate-500 uppercase tracking-wider">
-                Created
+                Due Date
               </th>
               <th className="py-3 pl-4 pr-6 font-semibold text-xs text-slate-500 uppercase tracking-wider text-right">
                 Actions
@@ -43,7 +43,7 @@ export default function TaskList({ tasks, onToggle, onDelete }) {
               <TaskItem 
                 key={task.id} 
                 task={task} 
-                onToggle={onToggle} 
+                onUpdate={onUpdate} 
                 onDelete={onDelete} 
               />
             ))}

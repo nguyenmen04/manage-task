@@ -10,5 +10,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     status BOOLEAN DEFAULT FALSE,
+    priority VARCHAR(20) DEFAULT 'Medium',
+    due_date DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
