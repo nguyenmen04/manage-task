@@ -23,8 +23,10 @@ describe('Backend API Unit Tests', () => {
     });
 
     it('should register a new user successfully', async () => {
-      // Giả lập DB trả về user vừa tạo
-      pool.query.mockResolvedValueOnce({ rows: [{ id: 1, username: 'testuser' }] });
+      // Giả lập DB: Lần 1 (SELECT check tồn tại) trả về rỗng, Lần 2 (INSERT) trả về user mới
+      pool.query
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [{ id: 1, username: 'testuser' }] });
       
       const res = await request(app).post('/auth/register').send({
         username: 'testuser',
