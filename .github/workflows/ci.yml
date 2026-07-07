@@ -47,10 +47,17 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Start Backend Server
+        working-directory: ./backend
+        run: npm start &
+
       - name: Run Cypress Tests
         uses: cypress-io/github-action@v6
         with:
           working-directory: frontend
-          build: npm run build
-          start: npm run preview
-          wait-on: 'http://localhost:4173'
+          start: npm run dev
+          wait-on: 'http://localhost:5173'
