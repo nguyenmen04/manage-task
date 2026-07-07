@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster, toast } from 'react-hot-toast';
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 import TaskStats from './components/tasks/TaskStats';
@@ -8,9 +9,8 @@ import TaskList from './components/tasks/TaskList';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import { AuthProvider, AuthContext } from './context/AuthContext';
-import { fetchTasks, addTask, toggleTask, deleteTask } from './services/api';
+import { fetchTasks, addTask, updateTask, deleteTask } from './services/api';
 
-// Component để bảo vệ các route yêu cầu đăng nhập
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
   if (loading) return null;
@@ -18,7 +18,6 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Component chính của ứng dụng quản lý Task (Chỉ hiện khi đã login)
 const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +28,7 @@ const Dashboard = () => {
       const data = await fetchTasks();
       setTasks(data);
     } catch (error) {
+      toast.error('Failed to load tasks');
       console.error(error);
     } finally {
       setLoading(false);
@@ -39,20 +39,28 @@ const Dashboard = () => {
     loadTasks();
   }, []);
 
-  const handleAddTask = async (title) => {
+  const handleAddTask = async (taskData) => {
     try {
-      const newTask = await addTask(title);
+      const newTask = await addTask(taskData);
       setTasks([newTask, ...tasks]);
+      toast.success('Task created successfully');
     } catch (error) {
+      toast.error('Failed to create task');
       console.error(error);
     }
   };
 
-  const handleToggleTask = async (id, currentStatus) => {
+  const handleUpdateTask = async (id, updates) => {
     try {
-      const updatedTask = await toggleTask(id, currentStatus);
-      setTasks(tasks.map(t => (t.id === id ? { ...t, status: updatedTask.status } : t)));
+      const updated = await updateTask(id, updates);
+      setTasks(tasks.map(t => (t.id === id ? { ...t, ...updated } : t)));
+      if (updates.status !== undefined) {
+        toast.success(updates.status ? 'Task completed!' : 'Task reopened');
+      } else {
+        toast.success('Task updated successfully');
+      }
     } catch (error) {
+      toast.error('Failed to update task');
       console.error(error);
     }
   };
@@ -61,7 +69,9 @@ const Dashboard = () => {
     try {
       await deleteTask(id);
       setTasks(tasks.filter(t => t.id !== id));
+      toast.success('Task deleted');
     } catch (error) {
+      toast.error('Failed to delete task');
       console.error(error);
     }
   };
@@ -81,15 +91,15 @@ const Dashboard = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
               </div>
             ) : (
-              <>
+              <div className="animate-fade-in-up">
                 <TaskStats tasks={tasks} />
                 <TaskForm onAdd={handleAddTask} />
                 <TaskList 
                   tasks={tasks} 
-                  onToggle={handleToggleTask} 
+                  onUpdate={handleUpdateTask} 
                   onDelete={handleDeleteTask} 
                 />
-              </>
+              </div>
             )}
           </div>
         </main>
@@ -102,6 +112,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
+        <Toaster position="top-right" />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

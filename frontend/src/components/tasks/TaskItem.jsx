@@ -1,17 +1,62 @@
-export default function TaskItem({ task, onToggle, onDelete }) {
-  const date = new Date(task.created_at).toLocaleDateString('vi-VN', {
+import { useState, useRef, useEffect } from 'react';
+
+export default function TaskItem({ task, onUpdate, onDelete }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(task.title);
+  const inputRef = useRef(null);
+
+  const dateStr = new Date(task.created_at).toLocaleDateString('vi-VN', {
     day: '2-digit', month: '2-digit', year: 'numeric'
   });
+
+  let dueDateStr = null;
+  let isOverdue = false;
+  if (task.due_date) {
+    const due = new Date(task.due_date);
+    dueDateStr = due.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    if (due < new Date() && !task.status) {
+      isOverdue = true;
+    }
+  }
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditing]);
+
+  const handleSaveEdit = () => {
+    if (editTitle.trim() && editTitle !== task.title) {
+      onUpdate(task.id, { title: editTitle });
+    } else {
+      setEditTitle(task.title);
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleSaveEdit();
+    if (e.key === 'Escape') {
+      setEditTitle(task.title);
+      setIsEditing(false);
+    }
+  };
+
+  const priorityColors = {
+    High: 'bg-red-50 text-red-700 border-red-200',
+    Medium: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    Low: 'bg-slate-50 text-slate-700 border-slate-200',
+  };
 
   return (
     <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors group">
       <td className="py-4 pl-6 pr-4 whitespace-nowrap w-16">
         <button 
-          onClick={() => onToggle(task.id, task.status)}
+          onClick={() => onUpdate(task.id, { status: !task.status })}
           className={`w-6 h-6 rounded border flex items-center justify-center transition-all ${
             task.status 
-              ? 'bg-blue-600 border-blue-600 text-white' 
-              : 'bg-white border-slate-300 hover:border-blue-400 text-transparent'
+              ? 'bg-indigo-600 border-indigo-600 text-white' 
+              : 'bg-white border-slate-300 hover:border-indigo-400 text-transparent'
           }`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -20,23 +65,41 @@ export default function TaskItem({ task, onToggle, onDelete }) {
         </button>
       </td>
       <td className="py-4 px-4 w-full">
-        <div className={`text-sm font-medium transition-colors ${
-          task.status ? 'text-slate-400 line-through' : 'text-slate-800'
-        }`}>
-          {task.title}
-        </div>
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            onBlur={handleSaveEdit}
+            onKeyDown={handleKeyDown}
+            className="w-full px-2 py-1 text-sm border-b-2 border-indigo-500 focus:outline-none bg-white"
+          />
+        ) : (
+          <div 
+            onClick={() => setIsEditing(true)}
+            className={`text-sm font-medium cursor-text transition-colors ${
+              task.status ? 'text-slate-400 line-through' : 'text-slate-800 hover:text-indigo-600'
+            }`}
+            title="Click to edit"
+          >
+            {task.title}
+          </div>
+        )}
       </td>
       <td className="py-4 px-4 whitespace-nowrap">
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          task.status 
-            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' 
-            : 'bg-amber-100 text-amber-800 border border-amber-200'
-        }`}>
-          {task.status ? 'Completed' : 'Pending'}
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${priorityColors[task.priority || 'Medium']}`}>
+          {task.priority || 'Medium'}
         </span>
       </td>
-      <td className="py-4 px-4 whitespace-nowrap text-sm text-slate-500">
-        {date}
+      <td className="py-4 px-4 whitespace-nowrap">
+        {dueDateStr ? (
+          <span className={`text-xs font-medium ${isOverdue ? 'text-red-500' : 'text-slate-500'}`}>
+            {dueDateStr}
+          </span>
+        ) : (
+          <span className="text-xs text-slate-400">-</span>
+        )}
       </td>
       <td className="py-4 pl-4 pr-6 whitespace-nowrap text-right">
         <button 

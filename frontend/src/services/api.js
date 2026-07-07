@@ -18,23 +18,23 @@ export const fetchTasks = async () => {
   return response.json();
 };
 
-export const addTask = async (title) => {
+export const addTask = async (taskData) => {
   const response = await fetch(API_URL, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify({ title }),
+    body: JSON.stringify(taskData),
   });
   if (!response.ok) throw new Error('Failed to add task');
   return response.json();
 };
 
-export const toggleTask = async (id, currentStatus) => {
+export const updateTask = async (id, updates) => {
   const response = await fetch(`${API_URL}/${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(),
-    body: JSON.stringify({ status: !currentStatus }),
+    body: JSON.stringify(updates),
   });
-  if (!response.ok) throw new Error('Failed to toggle task');
+  if (!response.ok) throw new Error('Failed to update task');
   return response.json();
 };
 
