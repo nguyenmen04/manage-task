@@ -42,7 +42,7 @@ app.post('/auth/register', async (req, res) => {
       [username, passwordHash]
     );
 
-    res.json({ message: 'Đăng ký thành công', user: newUser.rows[0] });
+    res.status(201).json({ message: 'Đăng ký thành công', user: newUser.rows[0] });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');

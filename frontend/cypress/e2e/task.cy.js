@@ -1,4 +1,13 @@
 describe('Task Management Flow', () => {
+  before(() => {
+    cy.request({
+      method: 'POST',
+      url: 'http://localhost:5000/auth/register',
+      body: { username: 'testuser', password: '123456' },
+      failOnStatusCode: false
+    })
+  })
+
   beforeEach(() => {
     // Để test Task, trước tiên phải Login
     cy.visit('/login')

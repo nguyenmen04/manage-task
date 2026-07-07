@@ -32,6 +32,20 @@ jobs:
   frontend-e2e:
     name: Cypress E2E Tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: manage_task
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -51,8 +65,18 @@ jobs:
         working-directory: ./backend
         run: npm ci
 
+      - name: Initialize Database
+        run: PGPASSWORD=password psql -h localhost -U postgres -d manage_task -f init.sql
+
       - name: Start Backend Server
         working-directory: ./backend
+        env:
+          DB_HOST: localhost
+          DB_USER: postgres
+          DB_PASSWORD: password
+          DB_NAME: manage_task
+          DB_PORT: 5432
+          JWT_SECRET: test_secret_123
         run: npm start &
 
       - name: Run Cypress Tests
