@@ -30,7 +30,7 @@ describe('Registration Flow', () => {
     cy.get('button[type="submit"]').click()
     
     // Backend sẽ chửi và Frontend phải hiện lỗi
-    cy.get('.text-red-600').should('contain', 'User already exists')
+    cy.get('.text-red-600').should('contain', 'Tên người dùng đã tồn tại')
   })
 
   it('should successfully register and redirect to login', () => {
