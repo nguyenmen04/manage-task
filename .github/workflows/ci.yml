@@ -79,9 +79,12 @@ jobs:
           JWT_SECRET: test_secret_123
         run: npm start &
 
+      - name: Wait for Backend
+        run: npx wait-on tcp:127.0.0.1:5000
+
       - name: Run Cypress Tests
         uses: cypress-io/github-action@v6
         with:
           working-directory: frontend
           start: npm run dev
-          wait-on: 'http://127.0.0.1:5173, tcp:127.0.0.1:5000'
+          wait-on: 'http://127.0.0.1:5173'
