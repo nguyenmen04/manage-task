@@ -1,17 +1,58 @@
-services:
-  db:
-    image: postgres:15
-    container_name: task_tracker_db
-    restart: always
-    environment:
-      POSTGRES_USER: task_user
-      POSTGRES_PASSWORD: task_password
-      POSTGRES_DB: tasks_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+version: '3.8'
 
+services:
+  # 1. Database PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: task_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: manage_task
+    ports:
+      - "5432:5432" # Phơi bày port 5432 ra ngoài để ta có thể dùng DBeaver xem Data
+    volumes:
+      # Ánh xạ file init.sql vào thư mục khởi tạo để tự động tạo bảng lúc đầu
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      # Lưu trữ dữ liệu vật lý ra ngoài để nếu tắt container không bị mất dữ liệu
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Ứng dụng Backend (Node.js)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: task_backend
+    environment:
+      - DB_HOST=db       # Trỏ tên host vào thẳng cái thùng "db" ở trên
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=manage_task
+      - DB_PORT=5432
+      - JWT_SECRET=secret_key_123
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        # Bắt buộc phải đợi thùng db khởi động xong hoàn toàn (xanh healthcheck) mới được chạy
+        condition: service_healthy
+
+  # 3. Ứng dụng Frontend (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: task_frontend
+    ports:
+      - "3000:80"  # Nginx bên trong chạy cổng 80, nhưng ta truy cập ở ngoài bằng http://localhost:3000
+    depends_on:
+      - backend
+
+# Khai báo ổ cứng ảo để lưu dữ liệu DB vĩnh viễn
 volumes:
-  postgres_data:
+  pgdata:
