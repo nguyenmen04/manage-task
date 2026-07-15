@@ -98,3 +98,79 @@ Backend cần cung cấp 4 API cơ bản kết nối trực tiếp với Databas
 - Quay lại Giai đoạn 1 nếu có lỗi cần sửa hoặc tính năng mới cần thêm.
 
 
+
+## 7. Kiến trúc Kubernetes (K8s) cho Đồ án
+
+Bản thiết kế này mô tả chi tiết kiến trúc triển khai ứng dụng **Manage Task** trên nền tảng **Kubernetes (K8s)**. Kiến trúc được thiết kế theo tiêu chuẩn Cloud-Native, đảm bảo các yếu tố: Khả năng mở rộng (Scalability), Độ sẵn sàng cao (High Availability), và Bảo mật (Security).
+
+### 7.1. Sơ đồ Kiến trúc Tổng thể (Architecture Diagram)
+
+```mermaid
+graph TD
+    User((Người dùng Internet)) -->|HTTPS / HTTP| IngressCtrl[NGINX Ingress Controller]
+    
+    subgraph "Kubernetes Cluster (Namespace: manage-task)"
+        IngressCtrl -->|Routing /| FESvc[Frontend Service<br/>ClusterIP: 80]
+        IngressCtrl -->|Routing /api| BESvc[Backend Service<br/>ClusterIP: 5000]
+        
+        subgraph "Frontend Tier"
+            FESvc --> FEPod1[Frontend Pod 1<br/>React + Nginx]
+            FESvc --> FEPod2[Frontend Pod 2<br/>React + Nginx]
+        end
+        
+        subgraph "Backend Tier"
+            BESvc --> BEPod1[Backend Pod 1<br/>Node.js]
+            BESvc --> BEPod2[Backend Pod 2<br/>Node.js]
+        end
+        
+        subgraph "Database Tier"
+            BEPod1 -->|Port 5432| DBSvc[Database Service<br/>ClusterIP: 5432]
+            BEPod2 -->|Port 5432| DBSvc
+            
+            DBSvc --> DBPod[PostgreSQL Pod<br/>StatefulSet]
+            DBPod --- PVC[(Persistent Volume Claim<br/>SSD Storage)]
+        end
+        
+        %% Config & Secrets
+        Config[ConfigMap<br/>Chứa Biến Môi trường] -.-> BEPod1
+        Config -.-> BEPod2
+        Sec[Secret<br/>Mật khẩu DB Base64] -.-> DBPod
+        Sec -.-> BEPod1
+        Sec -.-> BEPod2
+    end
+    
+    style IngressCtrl fill:#f9f,stroke:#333,stroke-width:2px
+    style PVC fill:#ff9,stroke:#333,stroke-width:2px
+```
+
+### 7.2. Phân tích Chi tiết Từng Thành phần (K8s Resources)
+
+Để đưa hệ thống lên K8s, chúng ta sẽ mã hóa hạ tầng (Infrastructure as Code) thông qua các file YAML (Manifests). Dưới đây là phân tích chi tiết cho từng lớp:
+
+#### 7.2.1. Lớp Edge Routing (Nhận & Điều hướng Traffic)
+*   **NGINX Ingress Controller:** Được lựa chọn làm "Cổng làng" tiếp nhận mọi luồng mạng từ Internet đi vào Cluster. NGINX là tiêu chuẩn công nghiệp (de-facto standard) cho K8s, mã nguồn mở 100%, hoàn toàn miễn phí (Tối ưu chi phí tuyệt đối so với các giải pháp trả phí hoặc quá cồng kềnh như Service Mesh). Hỗ trợ tự động gắn chứng chỉ SSL (HTTPS) và WAF.
+*   **Ingress Resource (`ingress.yaml`):** Chứa các quy tắc điều hướng (Routing Rules).
+    *   Traffic có đường dẫn `/api` sẽ được tự động chuyển hướng (Proxy) tới `backend-service`.
+    *   Traffic có đường dẫn `/` sẽ được chuyển hướng tới `frontend-service`.
+
+#### 7.2.2. Lớp Frontend (Web UI)
+*   **Deployment (`frontend-deployment.yaml`):** Quản lý các Pods chạy Image `nguyenmen/manage-task-frontend`. Khai báo `replicas: 2` để đảm bảo nếu 1 Pod chết, Pod kia vẫn phục vụ người dùng bình thường (High Availability).
+*   **Service (`frontend-service.yaml`):** Loại `ClusterIP`. Mở cổng 80 nội bộ để Ingress có thể trỏ tới. Service đóng vai trò là một Load Balancer nội bộ phân tải đều cho 2 Pods Frontend.
+
+#### 7.2.3. Lớp Backend (Application Logic)
+*   **Deployment (`backend-deployment.yaml`):** Chứa Image `nguyenmen/manage-task-backend` (Node.js). Khai báo `replicas: 2`.
+*   **ConfigMap (`backend-config.yaml`):** Tách rời cấu hình ra khỏi Code. Chứa các biến môi trường không nhạy cảm như `DB_HOST=postgres-service`, `DB_PORT=5432`. Giúp dễ dàng thay đổi cấu hình mà không cần Build lại Image.
+*   **Secret (`backend-secret.yaml`):** Chứa các thông tin nhạy cảm như `DB_PASSWORD`, `JWT_SECRET`. Dữ liệu trong Secret được mã hóa dạng Base64 và K8s tự động tiêm (inject) vào Pod dưới dạng biến môi trường.
+*   **Service (`backend-service.yaml`):** Loại `ClusterIP`, cổng 5000. Đây là cầu nối để Ingress giao tiếp với Backend.
+
+#### 7.2.4. Lớp Database (Data Persistence)
+*   **StatefulSet / Deployment (`postgres-deployment.yaml`):** Database là ứng dụng có trạng thái (Stateful), do đó cần cẩn trọng. K8s sẽ khởi chạy Image `postgres:15-alpine`.
+*   **PersistentVolumeClaim - PVC (`postgres-pvc.yaml`):** Đây là yếu tố sống còn! Nếu Pod Database bị sập và khởi động lại, dữ liệu bên trong Container sẽ bốc hơi. PVC yêu cầu K8s cấp phát một ổ cứng vật lý (Ví dụ: EBS trên AWS) và gắn chặt nó (mount) vào thư mục `/var/lib/postgresql/data` của Pod. Nhờ đó, dữ liệu luôn được an toàn.
+*   **Service (`postgres-service.yaml`):** Mở cổng 5432 để các Pods Backend gọi tới. Service này KHÔNG được phép phơi ra ngoài Internet (Không dùng NodePort/LoadBalancer).
+
+### 7.3. Các Ưu điểm Cốt lõi của Kiến trúc này
+
+1.  **Zero Downtime Deployment (Triển khai không gián đoạn):** Nhờ cơ chế **Rolling Update** của K8s, khi cập nhật phiên bản Backend mới, K8s sẽ tạo Pod mới trước, đợi Pod mới chạy ổn định (thông qua Readiness Probe) rồi mới giết Pod cũ đi. Người dùng không hề hay biết hệ thống đang được cập nhật.
+2.  **Tự phục hồi (Self-Healing):** Nếu tiến trình Node.js trong Backend bị treo (Crash), K8s Liveness Probe sẽ phát hiện và tự động khởi động lại Pod đó ngay lập tức.
+3.  **Khả năng mở rộng (Auto Scaling):** Có thể cấu hình **HPA (Horizontal Pod Autoscaler)** để tự động đẻ thêm Pod Backend (từ 2 lên 10 Pods) nếu lượng CPU tiêu thụ vượt ngưỡng 70% trong giờ cao điểm.
+4.  **Bảo mật Nội bộ (Decoupling & Isolation):** Frontend, Backend, và Database hoàn toàn cách ly với nhau. Database chỉ nhận traffic từ Backend, chặn đứng mọi rủi ro tấn trực tiếp từ Internet.

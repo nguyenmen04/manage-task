@@ -1,3 +1,7 @@
+CREATE DATABASE auth_db;
+CREATE DATABASE task_db;
+
+\c auth_db;
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -5,9 +9,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+\c task_db;
 CREATE TABLE IF NOT EXISTS tasks (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     status BOOLEAN DEFAULT FALSE,
     priority VARCHAR(20) DEFAULT 'Medium',

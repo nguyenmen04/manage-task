@@ -22,24 +22,45 @@ services:
       timeout: 5s
       retries: 5
 
-  # 2. Ứng dụng Backend (Node.js)
-  backend:
+  # 2. Ứng dụng Backend (Auth Service)
+  backend-auth:
     build:
-      context: ./backend
+      context: ./backend-auth
       dockerfile: Dockerfile
-    container_name: task_backend
+    container_name: task_backend_auth
     environment:
       - DB_HOST=db       # Trỏ tên host vào thẳng cái thùng "db" ở trên
       - DB_USER=postgres
       - DB_PASSWORD=password
-      - DB_NAME=manage_task
+      - DB_NAME=auth_db
       - DB_PORT=5432
       - JWT_SECRET=secret_key_123
+      - PORT=5001
     ports:
-      - "5000:5000"
+      - "5001:5001"
     depends_on:
       db:
         # Bắt buộc phải đợi thùng db khởi động xong hoàn toàn (xanh healthcheck) mới được chạy
+        condition: service_healthy
+
+  # 3. Ứng dụng Backend (Task Service)
+  backend-tasks:
+    build:
+      context: ./backend-tasks
+      dockerfile: Dockerfile
+    container_name: task_backend_tasks
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=task_db
+      - DB_PORT=5432
+      - JWT_SECRET=secret_key_123
+      - PORT=5002
+    ports:
+      - "5002:5002"
+    depends_on:
+      db:
         condition: service_healthy
 
   # 3. Ứng dụng Frontend (React + Nginx)
@@ -51,7 +72,8 @@ services:
     ports:
       - "3000:80"  # Nginx bên trong chạy cổng 80, nhưng ta truy cập ở ngoài bằng http://localhost:3000
     depends_on:
-      - backend
+      - backend-auth
+      - backend-tasks
 
 # Khai báo ổ cứng ảo để lưu dữ liệu DB vĩnh viễn
 volumes:

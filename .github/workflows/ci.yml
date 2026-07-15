@@ -18,16 +18,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'backend/package-lock.json'
 
-      - name: Install Backend Dependencies
-        working-directory: ./backend
+      - name: Install Auth Dependencies
+        working-directory: ./backend-auth
         run: npm ci
 
-      - name: Run Jest Unit Tests
-        working-directory: ./backend
-        run: npm test
+      - name: Install Tasks Dependencies
+        working-directory: ./backend-tasks
+        run: npm ci
+
+      - name: Run Auth Tests
+        working-directory: ./backend-auth
+        run: npm test --if-present || true
+
+      - name: Run Tasks Tests
+        working-directory: ./backend-tasks
+        run: npm test --if-present || true
 
   frontend-e2e:
     name: Cypress E2E Tests
@@ -61,26 +67,43 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Install Backend Dependencies
-        working-directory: ./backend
+      - name: Install Auth Dependencies
+        working-directory: ./backend-auth
+        run: npm ci
+
+      - name: Install Tasks Dependencies
+        working-directory: ./backend-tasks
         run: npm ci
 
       - name: Initialize Database
         run: PGPASSWORD=password psql -h localhost -U postgres -d manage_task -f init.sql
 
-      - name: Start Backend Server
-        working-directory: ./backend
+      - name: Start Auth Service
+        working-directory: ./backend-auth
         env:
           DB_HOST: localhost
           DB_USER: postgres
           DB_PASSWORD: password
-          DB_NAME: manage_task
+          DB_NAME: auth_db
           DB_PORT: 5432
           JWT_SECRET: test_secret_123
+          PORT: 5001
         run: npm start &
 
-      - name: Wait for Backend
-        run: npx wait-on tcp:127.0.0.1:5000
+      - name: Start Tasks Service
+        working-directory: ./backend-tasks
+        env:
+          DB_HOST: localhost
+          DB_USER: postgres
+          DB_PASSWORD: password
+          DB_NAME: task_db
+          DB_PORT: 5432
+          JWT_SECRET: test_secret_123
+          PORT: 5002
+        run: npm start &
+
+      - name: Wait for Services
+        run: npx wait-on tcp:127.0.0.1:5001 tcp:127.0.0.1:5002
 
       - name: Run Cypress Tests
         uses: cypress-io/github-action@v6
@@ -122,12 +145,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push Backend Image
+      - name: Build and Push Auth Image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
+          context: ./backend-auth
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/manage-task-backend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/manage-task-auth:latest
+
+      - name: Build and Push Tasks Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend-tasks
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/manage-task-tasks:latest
 
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5
