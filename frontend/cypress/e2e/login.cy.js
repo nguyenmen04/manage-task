@@ -3,7 +3,7 @@ describe('Authentication Flow', () => {
     // Tự động tạo user trước khi chạy các bài test
     cy.request({
       method: 'POST',
-      url: 'http://localhost:5000/auth/register',
+      url: '/api/auth/register',
       body: { username: 'testuser', password: '123456' },
       failOnStatusCode: false // Bỏ qua lỗi nếu user đã tồn tại
     })

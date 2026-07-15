@@ -2,7 +2,7 @@ describe('Task Management Flow', () => {
   before(() => {
     cy.request({
       method: 'POST',
-      url: 'http://localhost:5000/auth/register',
+      url: '/api/auth/register',
       body: { username: 'testuser', password: '123456' },
       failOnStatusCode: false
     })

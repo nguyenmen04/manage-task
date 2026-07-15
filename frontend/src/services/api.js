@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/tasks';
+const API_URL = '/api/tasks';
 
 // Hàm lấy token từ localStorage
 const getAuthHeaders = () => {

@@ -16,7 +16,7 @@ describe('Registration Flow', () => {
     // 1. Dùng API ngầm tạo trước 1 user tên là 'testuser'
     cy.request({
       method: 'POST',
-      url: 'http://localhost:5000/auth/register',
+      url: '/api/auth/register',
       body: { username: 'testuser', password: '123456' },
       failOnStatusCode: false
     })
