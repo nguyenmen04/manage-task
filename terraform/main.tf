@@ -55,6 +55,14 @@ module "eks" {
   subnet_ids               = module.vpc.private_subnets
   control_plane_subnet_ids = module.vpc.private_subnets
 
+  # Kích hoạt EKS Add-ons cần thiết
+  cluster_addons = {
+    # Hỗ trợ tạo Ổ cứng ảo (EBS) cho Database PVC
+    aws-ebs-csi-driver = {
+      most_recent = true
+    }
+  }
+
   # Cấu hình Managed Node Group (Worker Nodes)
   eks_managed_node_groups = {
     # Tên của nhóm công nhân
@@ -62,13 +70,22 @@ module "eks" {
       # Đặt Worker Nodes vào Private Subnet
       subnet_ids = module.vpc.private_subnets
 
-      # Cấu hình loại máy (EC2)
-      instance_types = ["t3.medium"] # Đủ RAM để chạy DB + Backend + Frontend
+      # Cấu hình loại máy (EC2) - Bắt buộc dùng t3.micro vì tài khoản AWS giới hạn Free Tier
+      instance_types = ["t3.micro"] # RAM 1GB (Ít nhưng đành chịu do giới hạn tài khoản)
+
+      # Hack giới hạn Card mạng: Kích hoạt Prefix Delegation để t3.micro có thể nhồi 110 Pods
+      bootstrap_extra_args = "--use-max-pods false --kubelet-extra-args '--max-pods=110'"
 
       # Auto Scaling (Tự động co giãn số lượng công nhân)
-      min_size     = 2 # Tối thiểu lúc nào cũng có 2 máy
-      max_size     = 3 # Khi tải cao, tối đa đẻ thêm thành 3 máy
-      desired_size = 2 # Mặc định duy trì 2 máy
+      # Tăng lên 5 máy vì t3.micro bị giới hạn số lượng Pod tối đa (chỉ chạy được 4 Pod/máy)
+      min_size     = 3 # Giữ ở mức 3 để tránh lỗi AWS API khi update
+      max_size     = 6 
+      desired_size = 5 
+
+      # Cấp quyền cho EC2 tạo ổ cứng ảo
+      iam_role_additional_policies = {
+        AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+      }
     }
   }
 
