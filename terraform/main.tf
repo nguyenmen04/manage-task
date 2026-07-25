@@ -46,7 +46,7 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = var.cluster_name
-  cluster_version = "1.30"
+  cluster_version = "1.36"
 
   # Cấp quyền truy cập vào Cluster qua API (Dành cho kubectl)
   cluster_endpoint_public_access = true
@@ -77,10 +77,10 @@ module "eks" {
       bootstrap_extra_args = "--use-max-pods false --kubelet-extra-args '--max-pods=110'"
 
       # Auto Scaling (Tự động co giãn số lượng công nhân)
-      # Tăng lên 5 máy vì t3.micro bị giới hạn số lượng Pod tối đa (chỉ chạy được 4 Pod/máy)
-      min_size     = 3 # Giữ ở mức 3 để tránh lỗi AWS API khi update
-      max_size     = 6 
-      desired_size = 5 
+      # 8 máy + giảm replica ứng dụng xuống 1 là vừa đủ cân bằng
+      min_size     = 5
+      max_size     = 8
+      desired_size = 8
 
       # Cấp quyền cho EC2 tạo ổ cứng ảo
       iam_role_additional_policies = {

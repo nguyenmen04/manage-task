@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'backend-auth'
+    static_configs:
+      - targets: ['task_backend_auth:5001']
+
+  - job_name: 'backend-tasks'
+    static_configs:
+      - targets: ['task_backend_tasks:5002']

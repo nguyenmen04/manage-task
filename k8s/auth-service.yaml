@@ -17,7 +17,7 @@ metadata:
   name: auth-deployment
   namespace: manage-task
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: auth-service
@@ -29,7 +29,7 @@ spec:
       containers:
         - name: auth-service
           # Thay 'your-dockerhub-username' bằng username thật trên Docker Hub của bạn
-          image: your-dockerhub-username/manage-task-auth:latest
+          image: nguyenmen/manage-task-auth:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5001

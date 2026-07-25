@@ -75,6 +75,37 @@ services:
       - backend-auth
       - backend-tasks
 
+  # 5. Hệ thống thu thập dữ liệu (Prometheus)
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    container_name: task_prometheus
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prom_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    depends_on:
+      - backend-auth
+      - backend-tasks
+
+  # 6. Bảng điều khiển (Grafana)
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: task_grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3001:3000" # Đổi sang cổng 3001 ở ngoài vì 3000 đã bị Frontend chiếm
+    depends_on:
+      - prometheus
+
 # Khai báo ổ cứng ảo để lưu dữ liệu DB vĩnh viễn
 volumes:
   pgdata:
+  prom_data:
+  grafana_data:

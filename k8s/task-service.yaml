@@ -17,7 +17,7 @@ metadata:
   name: task-deployment
   namespace: manage-task
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: task-service
@@ -29,7 +29,7 @@ spec:
       containers:
         - name: task-service
           # Thay 'your-dockerhub-username' bằng username thật trên Docker Hub của bạn
-          image: your-dockerhub-username/manage-task-tasks:latest
+          image: nguyenmen/manage-task-tasks:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5002

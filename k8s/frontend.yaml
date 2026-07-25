@@ -4,7 +4,7 @@ metadata:
   name: frontend-deployment
   namespace: manage-task
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: frontend
@@ -16,7 +16,7 @@ spec:
       containers:
         - name: frontend
           # Thay 'your-dockerhub-username' bằng username thật trên Docker Hub của bạn
-          image: your-dockerhub-username/manage-task-frontend:latest
+          image: nguyenmen/manage-task-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80

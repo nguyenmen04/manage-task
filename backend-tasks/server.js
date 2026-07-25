@@ -14,6 +14,18 @@ const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_123';
 app.use(cors());
 app.use(express.json());
 
+// Metrics Middleware (Prometheus)
+const promBundle = require("express-prom-bundle");
+const metricsMiddleware = promBundle({ 
+  includeMethod: true, 
+  includePath: true, 
+  includeStatusCode: true,
+  promClient: {
+    collectDefaultMetrics: {}
+  }
+});
+app.use(metricsMiddleware);
+
 
 // =======================
 // Quản lý Tasks (Đã bảo mật)
