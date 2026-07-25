@@ -7,7 +7,7 @@ services:
     container_name: task_db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: manage_task
     ports:
       - "5432:5432" # Phơi bày port 5432 ra ngoài để ta có thể dùng DBeaver xem Data
@@ -31,10 +31,10 @@ services:
     environment:
       - DB_HOST=db       # Trỏ tên host vào thẳng cái thùng "db" ở trên
       - DB_USER=postgres
-      - DB_PASSWORD=password
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=auth_db
       - DB_PORT=5432
-      - JWT_SECRET=secret_key_123
+      - JWT_SECRET=${JWT_SECRET}
       - PORT=5001
     ports:
       - "5001:5001"
@@ -52,10 +52,10 @@ services:
     environment:
       - DB_HOST=db
       - DB_USER=postgres
-      - DB_PASSWORD=password
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=task_db
       - DB_PORT=5432
-      - JWT_SECRET=secret_key_123
+      - JWT_SECRET=${JWT_SECRET}
       - PORT=5002
     ports:
       - "5002:5002"
@@ -98,7 +98,7 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
     ports:
       - "3001:3000" # Đổi sang cổng 3001 ở ngoài vì 3000 đã bị Frontend chiếm
     depends_on:
