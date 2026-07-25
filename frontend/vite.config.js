@@ -5,15 +5,15 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   server: {
     proxy: {
-      '/api/auth': {
+      '/api/v1/auth': {
         target: 'http://localhost:5001',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/auth/, '/auth')
+        rewrite: (path) => path.replace(/^\/api\/v1\/auth/, '/auth')
       },
-      '/api/tasks': {
+      '/api/v1/tasks': {
         target: 'http://localhost:5002',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/tasks/, '/tasks')
+        rewrite: (path) => path.replace(/^\/api\/v1\/tasks/, '/tasks')
       }
     }
   },
