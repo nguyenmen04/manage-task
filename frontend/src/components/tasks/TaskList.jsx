@@ -1,7 +1,25 @@
-import { DragDropContext } from '@hello-pangea/dnd';
+import { useState } from 'react';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCorners,
+} from '@dnd-kit/core';
 import KanbanColumn from './KanbanColumn';
 
 export default function TaskList({ tasks, onUpdate, onDelete }) {
+  const [activeId, setActiveId] = useState(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // Phải kéo ít nhất 5px mới kích hoạt kéo thả, tránh click nhầm
+      },
+    })
+  );
+
   if (tasks.length === 0) {
     return (
       <div className="glass-card rounded-2xl p-12 text-center relative overflow-hidden mt-6">
@@ -35,34 +53,58 @@ export default function TaskList({ tasks, onUpdate, onDelete }) {
     }
   };
 
-  const onDragEnd = (result) => {
-    const { destination, source, draggableId } = result;
+  // Tìm task đang được kéo
+  const activeTask = activeId ? tasks.find(t => t.id.toString() === activeId) : null;
 
-    // Dropped outside a valid column
-    if (!destination) return;
+  // Tìm column chứa task theo ID
+  const findColumnOfTask = (taskId) => {
+    for (const [colId, col] of Object.entries(columns)) {
+      if (col.tasks.some(t => t.id.toString() === taskId)) {
+        return colId;
+      }
+    }
+    return null;
+  };
 
-    // Dropped in the exact same place
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
+  const handleDragStart = (event) => {
+    setActiveId(event.active.id);
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over) return;
+
+    const activeTaskId = active.id;
+    const overId = over.id;
+
+    // Xác định column đích: nếu thả vào column thì overId là columnId, 
+    // nếu thả vào card khác thì tìm column chứa card đó
+    let destinationColumn;
+    if (['TODO', 'IN_PROGRESS', 'DONE'].includes(overId)) {
+      destinationColumn = overId;
+    } else {
+      destinationColumn = findColumnOfTask(overId);
     }
 
-    const taskId = parseInt(draggableId, 10);
-    const newStatus = destination.droppableId;
+    const sourceColumn = findColumnOfTask(activeTaskId);
 
-    // If moving to a new column, trigger update API
-    if (source.droppableId !== destination.droppableId) {
-      // Optimistic update would go here if managed in parent state, 
-      // but onUpdate makes the API call and re-fetches.
-      onUpdate(taskId, { status: newStatus });
-    }
+    if (!destinationColumn || !sourceColumn) return;
+    if (sourceColumn === destinationColumn) return;
+
+    const taskId = parseInt(activeTaskId, 10);
+    onUpdate(taskId, { status: destinationColumn });
   };
 
   return (
     <div className="mt-8">
-      <DragDropContext onDragEnd={onDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
         <div className="flex flex-col md:flex-row gap-6 items-start overflow-x-auto pb-4">
           {Object.values(columns).map((column) => (
             <KanbanColumn
@@ -75,7 +117,20 @@ export default function TaskList({ tasks, onUpdate, onDelete }) {
             />
           ))}
         </div>
-      </DragDropContext>
+
+        <DragOverlay>
+          {activeTask ? (
+            <div className="bg-white rounded-xl p-4 shadow-2xl border-2 border-indigo-400 w-72 rotate-3">
+              <span className="text-[10px] font-semibold uppercase text-indigo-600">
+                {activeTask.priority || 'Medium'}
+              </span>
+              <h3 className="text-sm font-medium text-slate-800 mt-1">
+                {activeTask.title}
+              </h3>
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 }
