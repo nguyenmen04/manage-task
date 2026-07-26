@@ -31,19 +31,21 @@ describe('Task Management Flow', () => {
     // 4. Kiểm tra Toast hiển thị (react-hot-toast)
     cy.contains('Task created successfully').should('be.visible')
 
-    // 5. Kiểm tra bảng danh sách có chứa task vừa tạo không
-    cy.get('table').contains(taskName).should('be.visible')
-    cy.get('table').contains('High').should('be.visible')
+    // 5. Kiểm tra bảng Kanban có chứa task vừa tạo không (sẽ nằm ở cột TODO theo mặc định)
+    cy.contains('h2', 'To Do').parent().parent().contains(taskName).should('be.visible')
+    cy.contains('h2', 'To Do').parent().parent().contains('High').should('be.visible')
   })
 
-  it('should mark a task as completed', () => {
-    // Tìm dòng chứa Task vừa tạo, tìm nút check và click
-    cy.contains('table tr', 'Học Automation Test với Cypress')
-      .find('button')
+  it('should delete a task', () => {
+    // Tìm thẻ Kanban chứa Task vừa tạo, tìm nút delete và click
+    cy.contains('h3', 'Học Automation Test với Cypress')
+      .parent()
+      .parent()
+      .find('button[title="Delete Task"]')
       .first()
-      .click()
+      .click({ force: true })
 
     // Kiểm tra Toast hiện lên
-    cy.contains('Task completed!').should('be.visible')
+    cy.contains('Task deleted successfully').should('be.visible')
   })
 })
