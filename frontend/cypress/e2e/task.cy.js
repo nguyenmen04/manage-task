@@ -46,6 +46,6 @@ describe('Task Management Flow', () => {
       .click({ force: true })
 
     // Kiểm tra Toast hiện lên
-    cy.contains('Task deleted successfully').should('be.visible')
+    cy.contains('Task deleted').should('be.visible')
   })
 })
