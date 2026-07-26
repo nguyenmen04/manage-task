@@ -51,17 +51,23 @@ const Dashboard = () => {
   };
 
   const handleUpdateTask = async (id, updates) => {
+    // Optimistic Update ngay lập tức để thư viện Drag & Drop không bị giật ngược
+    setTasks(prevTasks => prevTasks.map(t => (t.id === id ? { ...t, ...updates } : t)));
+
     try {
       const updated = await updateTask(id, updates);
-      setTasks(tasks.map(t => (t.id === id ? { ...t, ...updated } : t)));
+      setTasks(prevTasks => prevTasks.map(t => (t.id === id ? { ...t, ...updated } : t)));
+      
       if (updates.status !== undefined) {
-        toast.success(updates.status ? 'Task completed!' : 'Task reopened');
+        toast.success(updates.status === 'DONE' ? 'Task completed!' : 'Task moved');
       } else {
         toast.success('Task updated successfully');
       }
     } catch (error) {
       toast.error('Failed to update task');
       console.error(error);
+      // Hoàn tác nếu lỗi
+      loadTasks();
     }
   };
 
